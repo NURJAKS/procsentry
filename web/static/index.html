@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dev Laptop Sentinel | Acer Nitro 5 Hardware & Workspace Monitor</title>
+  <meta name="description" content="Умный страж здоровья ноутбука и рабочей среды разработчика на Ubuntu Linux">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Ambient background glow layers -->
+  <div class="ambient-glow glow-cyan"></div>
+  <div class="ambient-glow glow-violet"></div>
+  <div class="ambient-glow glow-emerald"></div>
+
+  <div class="app-container">
+    <!-- Top Bar / Navigation -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="shield-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">
+            DEV <span class="highlight">SENTINEL</span>
+            <span class="version-tag">NITRO 5 • UBUNTU</span>
+          </div>
+          <div class="brand-sub">Hardware Safety & Developer Workspace Guardian</div>
+        </div>
+      </div>
+
+      <!-- Live Global Status Indicator -->
+      <div class="status-pill-container">
+        <div id="system-status-pill" class="status-pill status-nominal">
+          <span class="pulsing-dot"></span>
+          <span id="system-status-text">ВСЕ СИСТЕМЫ В НОРМЕ</span>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="header-actions">
+        <button id="btn-quick-kill-ghosts" class="action-btn action-warning" title="Завершить забытые dev-серверы">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.364 5.636a9 9 0 010 12.728m-12.728 0a9 9 0 010-12.728m6.364.636v6m0 4h.01"/></svg>
+          <span class="btn-text">Убрать призраков (<span id="ghosts-badge-count">0</span>)</span>
+        </button>
+
+        <button id="btn-quick-prune-docker" class="action-btn action-docker" title="Очистить неиспользуемый кэш Docker">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span class="btn-text">Docker Prune</span>
+        </button>
+
+        <button id="btn-refresh" class="action-btn action-icon" title="Обновить данные сейчас">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Telemetry Grid (4 Essential Hardware HUD Cards) -->
+    <section class="telemetry-grid">
+      <!-- 1. CPU & Thermal Card -->
+      <div class="hud-card card-cpu">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon cpu-glow">⚡</span>
+            <div>
+              <h3>Процессор & Охлаждение</h3>
+              <span class="card-sub">Intel Core i5-11400H (6C / 12T)</span>
+            </div>
+          </div>
+          <div class="metric-badge" id="cpu-freq-badge">2.70 GHz</div>
+        </div>
+
+        <div class="metric-hero">
+          <div class="metric-value-group">
+            <span id="cpu-temp-val" class="hero-val temp-healthy">56°C</span>
+            <span class="hero-sublabel">Температура Package</span>
+          </div>
+          <div class="metric-value-group text-right">
+            <span id="cpu-load-val" class="hero-val">14%</span>
+            <span class="hero-sublabel">Загрузка CPU</span>
+          </div>
+        </div>
+
+        <!-- Live Canvas Chart -->
+        <div class="chart-wrapper">
+          <canvas id="cpu-chart" height="50"></canvas>
+        </div>
+
+        <!-- Core Bars Mini Grid -->
+        <div class="cores-label">Нагрузка по ядрам:</div>
+        <div id="cpu-cores-grid" class="cores-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- 2. RAM & OOM Guard Card -->
+      <div class="hud-card card-ram">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon ram-glow">💾</span>
+            <div>
+              <h3>Оперативная Память</h3>
+              <span class="card-sub">OOM Guard & Давление памяти</span>
+            </div>
+          </div>
+          <div id="ram-pressure-badge" class="metric-badge badge-emerald">HEALTHY</div>
+        </div>
+
+        <div class="metric-hero">
+          <div class="metric-value-group">
+            <span id="ram-used-val" class="hero-val">9.8 GB</span>
+            <span class="hero-sublabel">Занято из <span id="ram-total-val">15.0 GB</span></span>
+          </div>
+          <div class="metric-value-group text-right">
+            <span id="ram-pct-val" class="hero-val">65%</span>
+            <span class="hero-sublabel">Процент ОЗУ</span>
+          </div>
+        </div>
+
+        <!-- Segmented Bar -->
+        <div class="progress-container">
+          <div class="progress-bar-stack">
+            <div id="bar-ram-used" class="bar-fill bar-primary" style="width: 65%;"></div>
+            <div id="bar-ram-cache" class="bar-fill bar-secondary" style="width: 20%;"></div>
+          </div>
+        </div>
+
+        <div class="ram-details-row">
+          <div class="detail-item">
+            <span class="dot dot-primary"></span>
+            <span>Приложения: <strong id="ram-app-gb">7.5 GB</strong></span>
+          </div>
+          <div class="detail-item">
+            <span class="dot dot-secondary"></span>
+            <span>Кэш/Буфер: <strong id="ram-cache-gb">2.3 GB</strong></span>
+          </div>
+          <div class="detail-item">
+            <span class="dot dot-gray"></span>
+            <span>Свободно: <strong id="ram-free-gb">5.2 GB</strong></span>
+          </div>
+        </div>
+
+        <!-- Swap Status -->
+        <div class="swap-status-bar">
+          <span>Swap: <span id="swap-used-gb">0 GB</span> / <span id="swap-total-gb">27 GB</span></span>
+          <div class="mini-bar"><div id="bar-swap" class="mini-bar-fill" style="width: 1%;"></div></div>
+        </div>
+      </div>
+
+      <!-- 3. Battery Station & Longevity Card -->
+      <div class="hud-card card-battery">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon battery-glow">🔋</span>
+            <div>
+              <h3>Батарея & Питание</h3>
+              <span class="card-sub">Износ аккумулятора & Ваттметр</span>
+            </div>
+          </div>
+          <div id="battery-status-badge" class="metric-badge badge-blue">Зарядка</div>
+        </div>
+
+        <div class="metric-hero">
+          <div class="metric-value-group">
+            <span id="bat-pct-val" class="hero-val">63%</span>
+            <span class="hero-sublabel" id="bat-state-desc">Подключен к сети</span>
+          </div>
+          <div class="metric-value-group text-right">
+            <span id="bat-watts-val" class="hero-val text-cyan">29.1 W</span>
+            <span class="hero-sublabel">Мощность (Ваттметр)</span>
+          </div>
+        </div>
+
+        <!-- Battery Health & Degradation Info -->
+        <div class="battery-health-box">
+          <div class="health-item">
+            <span class="health-label">Здоровье аккумулятора:</span>
+            <span id="bat-health-val" class="health-val text-emerald">73.5%</span>
+          </div>
+          <div class="health-item">
+            <span class="health-label">Износ (Wear Level):</span>
+            <span id="bat-wear-val" class="health-val text-amber">26.5%</span>
+          </div>
+          <div class="health-item">
+            <span class="health-label">Циклы зарядки:</span>
+            <span id="bat-cycles-val" class="health-val">88 циклов</span>
+          </div>
+        </div>
+
+        <div id="bat-tip-container" class="battery-tip">
+          💡 <strong>Совет защиты:</strong> Для сохранения ресурса батареи при работе от сети держите заряд до 80%.
+        </div>
+      </div>
+
+      <!-- 4. Thermal & Storage Safety Card -->
+      <div class="hud-card card-storage">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon storage-glow">🛡️</span>
+            <div>
+              <h3>Накопитель & Графика</h3>
+              <span class="card-sub">NVMe SSD и NVIDIA RTX 3050 Ti</span>
+            </div>
+          </div>
+          <div class="metric-badge badge-emerald">OK</div>
+        </div>
+
+        <div class="metric-hero">
+          <div class="metric-value-group">
+            <span id="nvme-temp-val" class="hero-val">45.8°C</span>
+            <span class="hero-sublabel">NVMe WD Blue SN550</span>
+          </div>
+          <div class="metric-value-group text-right">
+            <span id="gpu-temp-val" class="hero-val text-violet">Hybrid</span>
+            <span class="hero-sublabel">NVIDIA RTX 3050 Ti</span>
+          </div>
+        </div>
+
+        <div class="storage-health-specs">
+          <div class="spec-row">
+            <span class="spec-label">Лимит перегрева NVMe:</span>
+            <span class="spec-val">84.8°C (Критический)</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Графический стек:</span>
+            <span class="spec-val">Intel UHD + RTX 3050 Ti Mobile</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Время работы без перезагрузки:</span>
+            <span id="uptime-val" class="spec-val">--</span>
+          </div>
+          <div class="spec-row" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.08); align-items: center;">
+            <span class="spec-label">Режим GPU (PRIME):</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span id="gpu-mode-badge" class="metric-badge badge-amber">Intel Only</span>
+              <button id="btn-switch-gpu" class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.72rem;" onclick="openGpuModal()">
+                ⚡ Сменить
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Developer Command Center (Tabs) -->
+    <section class="command-center">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="tab-processes">
+          <span class="tab-icon">👻</span>
+          <span>Dev-процессы и Призраки</span>
+          <span id="tab-procs-counter" class="tab-badge">0</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-ports">
+          <span class="tab-icon">🔌</span>
+          <span>Карта занятых портов</span>
+          <span id="tab-ports-counter" class="tab-badge">0</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-docker">
+          <span class="tab-icon">🐳</span>
+          <span>Docker Утилизация</span>
+          <span id="tab-docker-counter" class="tab-badge">0</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-caches">
+          <span class="tab-icon">🧹</span>
+          <span>Кэши и Мусор Разработчика</span>
+        </button>
+      </div>
+
+      <!-- Tab Content 1: Processes -->
+      <div id="tab-processes" class="tab-panel active">
+        <div class="panel-toolbar">
+          <div class="toolbar-info">
+            <h4>Активные процессы разработки</h4>
+            <p>Детектор автоматически выявляет забытые dev-серверы (`node`, `python`, `vite`, `uvicorn`), оставшиеся в фоне.</p>
+          </div>
+          <div class="toolbar-actions">
+            <button id="btn-kill-all-ghosts" class="btn btn-danger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              Завершить всех призраков
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="sentinel-table">
+            <thead>
+              <tr>
+                <th>Категория</th>
+                <th>Сервис / Процесс</th>
+                <th>Проект / Назначение</th>
+                <th>Память (RAM)</th>
+                <th>CPU %</th>
+                <th>Время работы</th>
+                <th>Статус</th>
+                <th>Действие</th>
+              </tr>
+            </thead>
+            <tbody id="processes-tbody">
+              <tr>
+                <td colspan="8" class="text-center py-4">Сканирование процессов...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Ports -->
+      <div id="tab-ports" class="tab-panel">
+        <div class="panel-toolbar">
+          <div class="toolbar-info">
+            <h4>Карта прослушиваемых TCP портов</h4>
+            <p>Освобождайте занятые порты (`3000`, `8000`, `5173` и др.) в один клик без ввода команд в терминал.</p>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="sentinel-table">
+            <thead>
+              <tr>
+                <th>Порт</th>
+                <th>Назначение / Сервис</th>
+                <th>Процесс</th>
+                <th>PID</th>
+                <th>Память</th>
+                <th>Команда</th>
+                <th>Действие</th>
+              </tr>
+            </thead>
+            <tbody id="ports-tbody">
+              <tr>
+                <td colspan="7" class="text-center py-4">Сканирование портов...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Content 3: Docker -->
+      <div id="tab-docker" class="tab-panel">
+        <div class="panel-toolbar">
+          <div class="toolbar-info">
+            <h4>Docker Containers & NVMe Reclaimable Space</h4>
+            <p>Очищайте неиспользуемые контейнеры, слои образов и тома, забивающие быстрый SSD накопитель.</p>
+          </div>
+          <div class="toolbar-actions">
+            <button id="btn-prune-stopped" class="btn btn-secondary">Удалить остановленные</button>
+            <button id="btn-prune-images" class="btn btn-secondary">Очистить висячие образы</button>
+            <button id="btn-prune-system" class="btn btn-danger">Полный Prune</button>
+          </div>
+        </div>
+
+        <!-- Reclaimable Space Cards -->
+        <div class="docker-stats-grid">
+          <div class="docker-stat-card">
+            <span class="stat-icon">📦</span>
+            <div class="stat-info">
+              <span class="stat-label">Освобождаемо в образах</span>
+              <span id="docker-rec-images" class="stat-value text-cyan">--</span>
+            </div>
+          </div>
+          <div class="docker-stat-card">
+            <span class="stat-icon">🛑</span>
+            <div class="stat-info">
+              <span class="stat-label">Остановленные контейнеры</span>
+              <span id="docker-rec-containers" class="stat-value text-amber">--</span>
+            </div>
+          </div>
+          <div class="docker-stat-card">
+            <span class="stat-icon">🔨</span>
+            <div class="stat-info">
+              <span class="stat-label">Кэш сборки (Build Cache)</span>
+              <span id="docker-rec-build" class="stat-value text-violet">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-toolbar mt-4">
+          <h5 class="subhead mb-0">Все контейнеры Docker</h5>
+          <div class="filter-group">
+            <span id="docker-running-badge" class="metric-badge badge-emerald">0 Запущено</span>
+            <span id="docker-stopped-badge" class="metric-badge badge-amber">0 Остановлено</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="sentinel-table">
+            <thead>
+              <tr>
+                <th>Имя / ID</th>
+                <th>Образ</th>
+                <th>Статус</th>
+                <th>CPU %</th>
+                <th>RAM</th>
+                <th>Порты</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="docker-tbody">
+              <tr>
+                <td colspan="7" class="text-center py-4">Загрузка данных Docker...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Content 4: Caches -->
+      <div id="tab-caches" class="tab-panel">
+        <div class="panel-toolbar">
+          <div class="toolbar-info">
+            <h4>Кэши разработки на NVMe диске</h4>
+            <p>Очистка устаревших пакетов npm, pip, cargo и миниатюр для экономии места и ресурса SSD.</p>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="sentinel-table">
+            <thead>
+              <tr>
+                <th>Название кэша</th>
+                <th>Описание</th>
+                <th>Путь</th>
+                <th>Размер</th>
+                <th>Действие</th>
+              </tr>
+            </thead>
+            <tbody id="caches-tbody">
+              <tr>
+                <td colspan="5" class="text-center py-4">Сканирование кэшей...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirm-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <h3 id="modal-title">Подтверждение действия</h3>
+      <p id="modal-desc">Вы уверены, что хотите выполнить это действие?</p>
+      <div class="modal-actions">
+        <button id="modal-btn-cancel" class="btn btn-secondary">Отмена</button>
+        <button id="modal-btn-confirm" class="btn btn-danger">Подтвердить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Docker Logs Modal -->
+  <div id="logs-modal" class="modal-backdrop">
+    <div class="modal-card modal-large">
+      <div class="modal-header-row">
+        <h3 id="logs-modal-title">Логи контейнера</h3>
+        <button id="logs-modal-close" class="btn btn-secondary">✕</button>
+      </div>
+      <pre id="logs-modal-content" class="logs-terminal">Загрузка логов...</pre>
+    </div>
+  </div>
+
+  <!-- GPU Switch Modal -->
+  <div id="gpu-modal" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header-row">
+        <h3>⚡ Управление режимом GPU (PRIME)</h3>
+        <button onclick="closeGpuModal()" class="btn btn-secondary">✕</button>
+      </div>
+      <p style="font-size: 0.85rem; color: #94a3b8; margin: 10px 0;">
+        Выберите графический режим для Acer Nitro 5 (RTX 3050 Ti):
+      </p>
+      <div class="gpu-mode-options" style="display: flex; flex-direction: column; gap: 10px; margin: 15px 0;">
+        <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(56, 189, 248, 0.08); cursor: pointer; border: 1px solid rgba(56, 189, 248, 0.3);">
+          <input type="radio" name="gpu-mode-choice" value="on-demand" checked style="margin-top: 4px;">
+          <div>
+            <strong style="color: #38bdf8;">On-Demand (Гибридный) — Рекомендуется</strong>
+            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
+              Рабочий стол и браузер работают на тихом Intel CPU. Для Ollama AI, CUDA и 3D автоматически активируется RTX 3050 Ti.
+            </div>
+          </div>
+        </label>
+        <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.04); cursor: pointer; border: 1px solid rgba(255,255,255,0.1);">
+          <input type="radio" name="gpu-mode-choice" value="intel" style="margin-top: 4px;">
+          <div>
+            <strong style="color: #f59e0b;">Intel Only (Энергосбережение)</strong>
+            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
+              RTX 3050 Ti полностью обесточена. Максимальная жизнь от батареи, но ИИ и CUDA работают только на CPU.
+            </div>
+          </div>
+        </label>
+        <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.04); cursor: pointer; border: 1px solid rgba(255,255,255,0.1);">
+          <input type="radio" name="gpu-mode-choice" value="nvidia" style="margin-top: 4px;">
+          <div>
+            <strong style="color: #c084fc;">NVIDIA Only (Максимальная мощность)</strong>
+            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
+              Постоянная работа на RTX 3050 Ti. Максимальная производительность, но быстрее расходует батарею.
+            </div>
+          </div>
+        </label>
+      </div>
+      <div id="gpu-switch-cmd-box" style="display: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 6px; margin: 10px 0; font-family: monospace; font-size: 0.8rem; color: #38bdf8; border: 1px dashed rgba(56, 189, 248, 0.4); word-break: break-all;">
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeGpuModal()" class="btn btn-secondary">Отмена</button>
+        <button id="btn-apply-gpu" onclick="applyGpuSwitch()" class="btn btn-primary">Применить режим</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
