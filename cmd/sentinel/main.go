@@ -49,6 +49,44 @@ func runWatchdog() {
 	}
 }
 
+func runTrayIndicator() {
+	if os.Getenv("DISPLAY") == "" && os.Getenv("WAYLAND_DISPLAY") == "" {
+		return
+	}
+	time.Sleep(1 * time.Second)
+
+	// Check if already running
+	if err := exec.Command("pgrep", "-f", "tray_indicator.py").Run(); err == nil {
+		return
+	}
+
+	exePath, err := os.Executable()
+	baseDir := "."
+	if err == nil {
+		baseDir = filepath.Dir(exePath)
+	}
+	homeDir, _ := os.UserHomeDir()
+	candidates := []string{
+		filepath.Join(baseDir, "tray", "tray_indicator.py"),
+		filepath.Join(baseDir, "..", "tray", "tray_indicator.py"),
+		filepath.Join(homeDir, "Dev", "dev-sentinel", "tray", "tray_indicator.py"),
+	}
+
+	var trayScript string
+	for _, cand := range candidates {
+		if fi, err := os.Stat(cand); err == nil && !fi.IsDir() {
+			trayScript = cand
+			break
+		}
+	}
+
+	if trayScript != "" {
+		cmd := exec.Command("python3", trayScript)
+		cmd.Env = os.Environ()
+		_ = cmd.Start()
+	}
+}
+
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
@@ -140,6 +178,9 @@ func main() {
 
 	// Start background alert watchdog
 	go runWatchdog()
+
+	// Start GNOME top-panel tray indicator (if display available)
+	go runTrayIndicator()
 
 	// Start high-speed HTTP server
 	if err := webserver.StartServer(*portFlag, staticDir); err != nil {
