@@ -40,7 +40,7 @@ def check_and_alert(telemetry: Dict[str, Any]) -> None:
         last = COOLDOWNS.get("temp", 0)
         if now - last > 300:  # 5 min cooldown
             send_notification(
-                "🔥 Внимание: Перегрев процессора!",
+                "Внимание: Перегрев процессора",
                 f"Температура CPU достигла {pkg_temp}°C. Проверьте вентиляцию или тяжелые dev-процессы.",
                 urgency="critical",
                 icon="dialog-warning"
@@ -53,8 +53,8 @@ def check_and_alert(telemetry: Dict[str, Any]) -> None:
         last = COOLDOWNS.get("ram", 0)
         if now - last > 300:  # 5 min cooldown
             send_notification(
-                "💾 Опасно мало свободной ОЗУ!",
-                f"Осталось всего {avail_gb} GB ОЗУ! Возможен глухой завис системы. Освободите память в Sentinel.",
+                "Критический уровень ОЗУ",
+                f"Осталось всего {avail_gb} GB ОЗУ. Возможен риск OOM-freeze системы.",
                 urgency="critical",
                 icon="dialog-error"
             )
@@ -67,7 +67,7 @@ def check_and_alert(telemetry: Dict[str, Any]) -> None:
             last = COOLDOWNS.get("battery", 0)
             if now - last > 600:  # 10 min cooldown
                 send_notification(
-                    "⚡ Высокий разряд батареи!",
+                    "Высокий разряд батареи",
                     f"Ноутбук разряжается со скоростью {watts}W. Закройте неиспользуемые dev-серверы.",
                     urgency="normal",
                     icon="battery-caution"
@@ -83,7 +83,7 @@ def send_welcome_alert(telemetry: Dict[str, Any]) -> None:
     bat_p = telemetry.get("battery", {}).get("percent", 60)
     
     send_notification(
-        "🛡️ Dev Sentinel активен",
+        "Dev Sentinel активен",
         f"Система в норме | CPU {cpu_t}°C | RAM {ram_u}/{ram_t} GB | Батарея {bat_p}%",
         urgency="low",
         icon="utilities-system-monitor"

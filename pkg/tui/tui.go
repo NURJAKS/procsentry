@@ -26,17 +26,12 @@ const (
 	magenta   = "\033[35m"
 	cyan      = "\033[36m"
 	white     = "\033[37m"
-	bgRed     = "\033[41m"
-	bgGreen   = "\033[42m"
-	bgYellow  = "\033[43m"
-	bgCyan    = "\033[46m"
 	clearHome = "\033[H\033[2J"
 )
 
 // RunTUI launches the emergency terminal dashboard
 func RunTUI() {
-	// Enable raw/line input loop
-	message := "Готов к работе в экстренных ситуациях (ЧП)."
+	message := "System ready. Standby mode active."
 	ticker := time.NewTicker(1500 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -66,7 +61,7 @@ func RunTUI() {
 
 		fmt.Print(clearHome)
 		fmt.Printf("%s%s╔═══════════════════════════════════════════════════════════════════════════════╗%s\n", bold, cyan, reset)
-		fmt.Printf("%s%s║   🛡️  DEV SENTINEL — EMERGENCY HUD (Acer Nitro 5 • Ubuntu Linux)             ║%s\n", bold, cyan, reset)
+		fmt.Printf("%s%s║   DEVAEGIS — SYSTEM RESCUE HUD (Linux x86_64)                                 ║%s\n", bold, cyan, reset)
 		fmt.Printf("%s%s╚═══════════════════════════════════════════════════════════════════════════════╝%s\n", bold, cyan, reset)
 
 		// 1. Hardware Status Row
@@ -84,12 +79,12 @@ func RunTUI() {
 			ramColor = yellow
 		}
 
-		fmt.Printf(" %s⚡ CPU:%s %s%.1f°C%s (%.1f%%) | %s💾 RAM:%s %s%.1f/%.1f GB%s [%s%s%s] | %s🔋 BAT:%s %.0f%% (%.1fW)\n",
+		fmt.Printf(" %sCPU:%s %s%.1f°C%s (%.1f%%) | %sRAM:%s %s%.1f/%.1f GB%s [%s%s%s] | %sBAT:%s %.0f%% (%.1fW)\n",
 			bold, reset, cpuColor, telem.CPU.PackageTemp, reset, telem.CPU.LoadPercent,
 			bold, reset, ramColor, telem.RAM.UsedGB, telem.RAM.TotalGB, reset, ramColor, telem.RAM.Pressure, reset,
 			bold, reset, telem.Battery.Percent, telem.Battery.Watts)
 
-		fmt.Printf(" %s🔥 NVMe:%s %.1f°C | %s🎮 GPU:%s %s | %s⏱️  Uptime:%s %s\n",
+		fmt.Printf(" %sNVMe:%s %.1f°C | %sGPU:%s %s | %sUptime:%s %s\n",
 			bold, reset, telem.NVMeTemp,
 			bold, reset, telem.GPU.Status,
 			bold, reset, time.Duration(time.Now().Unix()-telem.UptimeSec)*time.Second)
@@ -101,66 +96,66 @@ func RunTUI() {
 		if ghostCount > 0 {
 			ghostColor = red
 		}
-		fmt.Printf(" %sСтатус среды:%s 👻 Призраков: %s%d%s | 🔌 Открытых портов: %s%d%s\n",
+		fmt.Printf(" %sEnvironment Status:%s Orphaned Processes: %s%d%s | Listening Ports: %s%d%s\n",
 			bold, reset, ghostColor, ghostCount, reset, cyan, len(activePorts), reset)
 
 		// 3. Dev Processes List (Top 6)
-		fmt.Printf("\n%s%s--- [АКТИВНЫЕ DEV-ПРОЦЕССЫ] ---%s\n", bold, yellow, reset)
-		fmt.Printf(" %-6s %-12s %-24s %-10s %-8s %s\n", "PID", "КАТЕГОРИЯ", "ИМЯ / ПРОЕКТ", "RAM", "UPTIME", "СТАТУС")
+		fmt.Printf("\n%s%s--- [ACTIVE DEV PROCESSES] ---%s\n", bold, yellow, reset)
+		fmt.Printf(" %-6s %-12s %-26s %-10s %-8s %s\n", "PID", "CATEGORY", "NAME / PROJECT", "RAM", "UPTIME", "STATUS")
 		limit := 6
 		if len(procs) < limit {
 			limit = len(procs)
 		}
 		for i := 0; i < limit; i++ {
 			p := procs[i]
-			status := fmt.Sprintf("%sАктивен%s", green, reset)
+			status := fmt.Sprintf("%s[ACTIVE]%s", green, reset)
 			if p.IsGhost {
-				status = fmt.Sprintf("%s%s👻 ПРИЗРАК%s", bold, red, reset)
+				status = fmt.Sprintf("%s%s[ORPHAN]%s", bold, red, reset)
 			} else if p.IsService {
-				status = fmt.Sprintf("%s⚙️ Сервис%s", blue, reset)
+				status = fmt.Sprintf("%s[SERVICE]%s", blue, reset)
 			}
 			proj := p.Project
 			if proj == "" {
 				proj = p.Name
 			}
-			if len(proj) > 23 {
-				proj = proj[:20] + "..."
+			if len(proj) > 25 {
+				proj = proj[:22] + "..."
 			}
-			fmt.Printf(" %-6d %-12s %-24s %-10s %-8s %s\n",
+			fmt.Printf(" %-6d %-12s %-26s %-10s %-8s %s\n",
 				p.PID, p.Category, proj, fmt.Sprintf("%.1f MB", p.MemoryMB), fmt.Sprintf("%.1fh", p.UptimeHours), status)
 		}
 		if len(procs) == 0 {
-			fmt.Printf(" %s(Dev-процессы не обнаружены)%s\n", dim, reset)
+			fmt.Printf(" %s(No development processes detected)%s\n", dim, reset)
 		}
 
 		// 4. Listening Ports (Top 6)
-		fmt.Printf("\n%s%s--- [ПРОСЛУШИВАЕМЫЕ ПОРТЫ] ---%s\n", bold, cyan, reset)
-		fmt.Printf(" %-7s %-28s %-8s %-14s %s\n", "ПОРТ", "СЕРВИС", "PID", "ПРОЦЕСС", "ОСВОБОЖДЕНИЕ")
+		fmt.Printf("\n%s%s--- [LISTENING TCP PORTS] ---%s\n", bold, cyan, reset)
+		fmt.Printf(" %-7s %-28s %-8s %-16s %s\n", "PORT", "SERVICE", "PID", "PROCESS", "RELEASABLE")
 		pLimit := 6
 		if len(activePorts) < pLimit {
 			pLimit = len(activePorts)
 		}
 		for i := 0; i < pLimit; i++ {
 			p := activePorts[i]
-			killLabel := fmt.Sprintf("%sДа (клик)%s", green, reset)
+			killLabel := fmt.Sprintf("%sYes (f %d)%s", green, p.Port, reset)
 			if !p.CanKill {
-				killLabel = fmt.Sprintf("%sСистемный%s", dim, reset)
+				killLabel = fmt.Sprintf("%sSystem%s", dim, reset)
 			}
-			fmt.Printf(" :%-6d %-28s %-8d %-14s %s\n",
+			fmt.Printf(" :%-6d %-28s %-8d %-16s %s\n",
 				p.Port, p.Hint, p.PID, p.Name, killLabel)
 		}
 		if len(activePorts) == 0 {
-			fmt.Printf(" %s(Нет прослушиваемых портов)%s\n", dim, reset)
+			fmt.Printf(" %s(No listening ports detected)%s\n", dim, reset)
 		}
 
 		// 5. Actions Bar
 		fmt.Printf("\n%s───────────────────────────────────────────────────────────────────────────────%s\n", dim, reset)
-		fmt.Printf(" %sДЕЙСТВИЯ (ЧП):%s\n", bold, reset)
-		fmt.Printf("  %s[g]%s Завершить ВСЕХ призраков  %s[f <порт>]%s Освободить порт  %s[d]%s Docker Prune  %s[q]%s Выход\n",
+		fmt.Printf(" %sACTIONS (EMERGENCY):%s\n", bold, reset)
+		fmt.Printf("  %s[g]%s Terminate All Orphans  %s[f <port>]%s Release Port  %s[d]%s Docker Prune  %s[q]%s Exit\n",
 			bold+red, reset, bold+yellow, reset, bold+blue, reset, bold, reset)
 
 		if message != "" {
-			fmt.Printf("\n %s💡 %s%s\n", bold+green, message, reset)
+			fmt.Printf("\n %s[INFO] %s%s\n", bold+green, message, reset)
 		}
 		fmt.Print(" > ")
 	}
@@ -180,36 +175,36 @@ func RunTUI() {
 			switch strings.ToLower(parts[0]) {
 			case "q", "exit", "quit":
 				fmt.Print(clearHome)
-				fmt.Println("Dev Sentinel TUI завершил работу.")
+				fmt.Println("DevAegis TUI terminated.")
 				return
 			case "g", "ghosts", "kill-ghosts":
 				count, freed, _ := processes.KillAllGhosts()
-				message = fmt.Sprintf("✅ Завершено призраков: %d, освобождено памяти: %.1f MB", count, freed)
+				message = fmt.Sprintf("[OK] Terminated %d orphan processes. Reclaimed %.1f MB.", count, freed)
 			case "f", "free":
 				if len(parts) > 1 {
 					port, err := strconv.Atoi(parts[1])
 					if err != nil {
-						message = "❌ Ошибка: укажите корректный номер порта, например: f 3000"
+						message = "[ERROR] Invalid port number. Example: f 3000"
 					} else {
 						if err := ports.FreePort(port); err != nil {
-							message = fmt.Sprintf("❌ Ошибка освобождения порта :%d: %v", port, err)
+							message = fmt.Sprintf("[ERROR] Failed to release port :%d: %v", port, err)
 						} else {
-							message = fmt.Sprintf("✅ Порт :%d успешно освобожден!", port)
+							message = fmt.Sprintf("[OK] Port :%d released successfully", port)
 						}
 					}
 				} else {
-					message = "⚠️ Укажите порт, например: f 3000"
+					message = "[WARN] Specify port number. Example: f 3000"
 				}
 			case "d", "docker", "prune":
 				if err := docker.PruneContainers(); err != nil {
-					message = fmt.Sprintf("❌ Ошибка Docker Prune: %v", err)
+					message = fmt.Sprintf("[ERROR] Docker prune failed: %v", err)
 				} else {
-					message = "✅ Остановленные контейнеры Docker очищены!"
+					message = "[OK] Stopped Docker containers and caches pruned."
 				}
 			case "r", "refresh":
-				message = "Данные обновлены."
+				message = "Telemetry data refreshed."
 			default:
-				message = fmt.Sprintf("Неизвестная команда: %s. Доступно: g, f <порт>, d, q", parts[0])
+				message = fmt.Sprintf("Unknown command: %s. Valid: g, f <port>, d, q", parts[0])
 			}
 			render()
 		}

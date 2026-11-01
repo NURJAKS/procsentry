@@ -1,4 +1,4 @@
-# 🛡️ DevAegis (formerly Dev Sentinel)
+# DevAegis (formerly Dev Sentinel)
 
 [![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go)](https://go.dev/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20(x86__64)-FCC624?style=flat-square&logo=linux)](https://kernel.org/)
@@ -11,7 +11,7 @@
 
 ---
 
-## ⚡ Why DevAegis?
+## Why DevAegis?
 
 During intensive software development (compiling Rust/C++, running local LLMs, training PyTorch models, or running multiple Vite/Node/Next.js dev servers), development machines frequently hit thermal limits, OOM thrashing, or port collisions (`EADDRINUSE :3000`).
 
@@ -26,20 +26,20 @@ Standard monitoring tools (like Electron apps or heavy browser dashboards) creat
 
 ---
 
-## 📊 Benchmark: Go Engine vs Python Legacy
+## Benchmark: Go Engine vs Python Legacy
 
 | Metric | Python + FastAPI + psutil | DevAegis (Pure Go Engine) | Improvement |
 | :--- | :--- | :--- | :--- |
-| **Resident Memory (RSS)** | `~85 MB` | **`~14 MB`** | **6.1× lighter** |
-| **Telemetry Endpoint Latency** | `270 – 450 ms` | **`0.4 – 1.2 ms`** | **~400× faster** |
-| **Process Inspection Latency** | `400 – 750 ms` | **`12 – 18 ms`** | **~35× faster** |
-| **Ghost Process Purge Speed** | `1,200 – 2,500 ms` | **`15 – 22 ms`** | **~80× faster** |
-| **Binary Cold Startup Time** | `1,800 ms` | **`8 – 12 ms`** | **Instantaneous** |
+| **Resident Memory (RSS)** | `~85 MB` | **`~14 MB`** | **6.1x lighter** |
+| **Telemetry Endpoint Latency** | `270 - 450 ms` | **`0.4 - 1.2 ms`** | **~400x faster** |
+| **Process Inspection Latency** | `400 - 750 ms` | **`12 - 18 ms`** | **~35x faster** |
+| **Ghost Process Purge Speed** | `1,200 - 2,500 ms` | **`15 - 22 ms`** | **~80x faster** |
+| **Binary Cold Startup Time** | `1,800 ms` | **`8 - 12 ms`** | **Instantaneous** |
 | **External Dependencies** | Python, pip, uvicorn, psutil | **0 (Zero)** | Single 8.6 MB binary |
 
 ---
 
-## 🏗️ Architecture & Kernel Interfaces
+## Architecture & Kernel Interfaces
 
 ```mermaid
 flowchart TD
@@ -74,14 +74,14 @@ flowchart TD
 ```
 
 ### Direct Linux Kernel Integration:
-* **Per-Core CPU Thermals**: Scans `coretemp` sysfs attributes for Package Temp and Core 0–5 individual thermals without executing `sensors` subprocesses.
+* **Per-Core CPU Thermals**: Scans `coretemp` sysfs attributes for Package Temp and Core 0-5 individual thermals without executing `sensors` subprocesses.
 * **NVMe Health**: Direct composite temperature tracking from NVMe controller sysfs nodes.
 * **Battery Discharge Wattmeter**: Reads continuous micro-watt rates, calculated degradation cycles, and wear level percentages.
 * **Docker Client**: Pure Go HTTP client directly communicating over `/var/run/docker.sock` without shell invokes or `docker stats` latency.
 
 ---
 
-## 🚀 Quickstart & Usage
+## Quickstart & Usage
 
 ### 1. Installation
 
@@ -129,37 +129,37 @@ DevAegis registers native media keys with `gsettings` for instantaneous emergenc
 
 ---
 
-## 🖥️ Interactive Emergency HUD (TUI)
+## Interactive Emergency HUD (TUI)
 
 The TUI provides a complete control plane optimized for emergency triage:
 
 ```text
 ╔═══════════════════════════════════════════════════════════════════════════════╗
-║   🛡️  DEVAEGIS — EMERGENCY HUD (Acer Nitro 5 • Ubuntu Linux)                  ║
+║   DEVAEGIS — SYSTEM RESCUE HUD (Linux x86_64)                                 ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
- ⚡ CPU: 54.0°C (3.2%) | 💾 RAM: 10.2/15.4 GB [HEALTHY] | 🔋 BAT: 32% (27.5W)
- 🔥 NVMe: 42.0°C | 🎮 GPU: Hybrid (Intel UHD + RTX 3050 Ti) | ⏱️ Uptime: 4h 12m
+ CPU: 54.0°C (3.2%) | RAM: 10.2/15.4 GB [HEALTHY] | BAT: 32% (27.5W)
+ NVMe: 42.0°C | GPU: Hybrid (Intel UHD + RTX 3050 Ti) | Uptime: 4h 12m
 ───────────────────────────────────────────────────────────────────────────────
- Status: 👻 Ghost Processes: 0 | 🔌 Listening Ports: 7
+ Status: Orphaned Processes: 0 | Listening Ports: 7
 
 --- [ACTIVE DEV PROCESSES] ---
  PID    CATEGORY     NAME / PROJECT           RAM        UPTIME   STATUS
- 12768  backend      ~/Dev/spendwise/backend  65.6 MB    0.8h     Active
- 7960   ai           MCP: Web Fetcher (AI)    85.4 MB    0.3h     ⚙️ Service
+ 12768  backend      ~/Dev/spendwise/backend  65.6 MB    0.8h     [ACTIVE]
+ 7960   ai           MCP: Web Fetcher (AI)    85.4 MB    0.3h     [SERVICE]
 
 --- [LISTENING PORTS] ---
- PORT    SERVICE                      PID      PROCESS        LIBERATION
- :8000   FastAPI / Django / Uvicorn   12768    python3        Yes (1-click)
+ PORT    SERVICE                      PID      PROCESS        RELEASABLE
+ :8000   FastAPI / Django / Uvicorn   12768    python3        Yes (f 8000)
  :48888  DevAegis Dashboard Core      4397     dev-sentinel   System
 
 ───────────────────────────────────────────────────────────────────────────────
- ACTIONS: [g] Kill All Ghosts  [f <port>] Free Port  [d] Docker Prune  [q] Quit
+ ACTIONS: [g] Terminate All Ghosts  [f <port>] Release Port  [d] Docker Prune  [q] Quit
  > 
 ```
 
 ---
 
-## 🛡️ Security & Privacy
+## Security & Privacy
 
 * **Zero Cloud Telemetry**: DevAegis performs 0 outbound network requests. All monitoring logic is strictly local.
 * **No Elevated Privileges for Reading**: Reads standard Linux `/proc` and `/sys` interfaces accessible to normal non-root user sessions.
@@ -167,6 +167,6 @@ The TUI provides a complete control plane optimized for emergency triage:
 
 ---
 
-## 📄 License
+## License
 
 Licensed under the [MIT License](LICENSE).

@@ -272,7 +272,6 @@ body {
 }
 
 .card-icon {
-  font-size: 1.4rem;
   width: 40px;
   height: 40px;
   border-radius: var(--radius-md);
@@ -280,6 +279,14 @@ body {
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+.card-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
 }
 
 .card-title h3 {
@@ -584,6 +591,14 @@ canvas#cpu-chart {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.tab-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  flex-shrink: 0;
+}
+
 .tab-btn.active {
   color: var(--neon-cyan);
   background: rgba(0, 240, 255, 0.08);
@@ -792,7 +807,17 @@ canvas#cpu-chart {
 }
 
 .stat-icon {
-  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.stat-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke: currentColor;
+  fill: none;
 }
 
 .stat-info {

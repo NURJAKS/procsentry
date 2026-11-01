@@ -54,7 +54,7 @@ def main():
     args = parser.parse_args()
 
     print(f"==================================================")
-    print(f"🛡️  Dev Laptop Sentinel starting on port {args.port}")
+    print(f"[Sentinel] Dev Laptop Sentinel starting on port {args.port}")
     print(f"    Dashboard: http://localhost:{args.port}")
     print(f"    Laptop: Acer Nitro 5 (AN515-57) • Ubuntu Linux")
     print(f"==================================================")

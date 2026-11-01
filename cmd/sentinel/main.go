@@ -26,8 +26,8 @@ func sendNotification(title, msg string) {
 func runWatchdog() {
 	time.Sleep(2 * time.Second)
 	initial := hardware.GetSystemTelemetry()
-	sendNotification("🛡️ Dev Sentinel (Go Engine)",
-		fmt.Sprintf("Запущен: CPU %.1f°C | Свободно RAM %.1f GB", initial.CPU.PackageTemp, initial.RAM.AvailableGB))
+	sendNotification("DevAegis Sentinel",
+		fmt.Sprintf("Started: CPU %.1f°C | Free RAM %.1f GB", initial.CPU.PackageTemp, initial.RAM.AvailableGB))
 
 	var lastAlertTime time.Time
 	for {
@@ -37,12 +37,12 @@ func runWatchdog() {
 		// Alert throttle (at most once every 60s for alerts)
 		if time.Since(lastAlertTime) > 60*time.Second {
 			if telem.CPU.IsCritical {
-				sendNotification("🔥 КРИТИЧЕСКИЙ ПЕРЕГРЕВ CPU!",
-					fmt.Sprintf("Температура процессора %.1f°C! Завершите ресурсоемкие задачи.", telem.CPU.PackageTemp))
+				sendNotification("[ALERT] High CPU Temperature",
+					fmt.Sprintf("CPU reached %.1f°C. Check runaway tasks.", telem.CPU.PackageTemp))
 				lastAlertTime = time.Now()
 			} else if telem.RAM.Pressure == "CRITICAL" {
-				sendNotification("💾 ОПАСНОСТЬ OOM! Память на исходе!",
-					fmt.Sprintf("Свободно лишь %.1f GB RAM! Нажмите [g] для очистки dev-призраков.", telem.RAM.AvailableGB))
+				sendNotification("[ALERT] Low Memory Warning",
+					fmt.Sprintf("Only %.1f GB RAM free. Execute 'aegis ghosts' to reclaim memory.", telem.RAM.AvailableGB))
 				lastAlertTime = time.Now()
 			}
 		}
@@ -95,47 +95,47 @@ func main() {
 			return
 		case "ghosts", "kill-ghosts":
 			count, freed, _ := processes.KillAllGhosts()
-			fmt.Printf("✅ Завершено призраков: %d, освобождено памяти: %.1f MB\n", count, freed)
+			fmt.Printf("[OK] Terminated %d ghost processes, reclaimed %.1f MB RAM\n", count, freed)
 			return
 		case "free":
 			if len(os.Args) < 3 {
-				fmt.Println("Укажите номер порта, например: dev-sentinel free 3000")
+				fmt.Println("Usage: aegis free <port>")
 				os.Exit(1)
 			}
 			port, err := strconv.Atoi(os.Args[2])
 			if err != nil {
-				fmt.Printf("Некорректный порт: %s\n", os.Args[2])
+				fmt.Printf("[ERROR] Invalid port: %s\n", os.Args[2])
 				os.Exit(1)
 			}
 			if err := ports.FreePort(port); err != nil {
-				fmt.Printf("❌ Ошибка: %v\n", err)
+				fmt.Printf("[ERROR] %v\n", err)
 				os.Exit(1)
 			}
-			fmt.Printf("✅ Порт :%d успешно освобожден!\n", port)
+			fmt.Printf("[OK] Port :%d released successfully\n", port)
 			return
 		case "prune":
 			if err := docker.PruneContainers(); err != nil {
-				fmt.Printf("❌ Ошибка Docker: %v\n", err)
+				fmt.Printf("[ERROR] Docker: %v\n", err)
 				os.Exit(1)
 			}
-			fmt.Println("✅ Остановленные контейнеры Docker очищены!")
+			fmt.Println("[OK] Stopped Docker containers and caches pruned")
 			return
 		case "status":
 			telem := hardware.GetSystemTelemetry()
-			fmt.Printf("Статус: %s | CPU: %.1f°C (%.1f%%) | RAM: %.1f/%.1f GB (Свободно: %.1f GB) | BAT: %.0f%% (%.1fW) | NVMe: %.1f°C\n",
+			fmt.Printf("Status: %s | CPU: %.1f°C (%.1f%%) | RAM: %.1f/%.1f GB (Free: %.1f GB) | BAT: %.0f%% (%.1fW) | NVMe: %.1f°C\n",
 				telem.Status, telem.CPU.PackageTemp, telem.CPU.LoadPercent,
 				telem.RAM.UsedGB, telem.RAM.TotalGB, telem.RAM.AvailableGB,
 				telem.Battery.Percent, telem.Battery.Watts, telem.NVMeTemp)
 			return
 		case "--help", "-h", "help":
-			fmt.Println("Dev Sentinel (Go Engine) — Персональный страж ноутбука разработчика")
-			fmt.Println("\nИспользование:")
-			fmt.Println("  dev-sentinel              Запуск сервиса мониторинга и веб-дашборда")
-			fmt.Println("  dev-sentinel tui          Запуск экстренного терминального HUD (ЧП-режим)")
-			fmt.Println("  dev-sentinel ghosts       1-клик завершение всех забытых dev-серверов")
-			fmt.Println("  dev-sentinel free <порт>  1-клик освобождение порта")
-			fmt.Println("  dev-sentinel prune        Очистка остановленных контейнеров Docker")
-			fmt.Println("  dev-sentinel status       Краткий снимок состояния системы")
+			fmt.Println("DevAegis — Linux Systems Guardian & Dev Workspace HUD")
+			fmt.Println("\nUsage:")
+			fmt.Println("  aegis              Start daemon (telemetry service & web server)")
+			fmt.Println("  aegis tui          Launch emergency terminal HUD")
+			fmt.Println("  aegis ghosts       Terminate orphaned background dev processes")
+			fmt.Println("  aegis free <port>  Release listening TCP port")
+			fmt.Println("  aegis prune        Prune stopped Docker containers")
+			fmt.Println("  aegis status       Show single-line hardware summary")
 			return
 		}
 	}
@@ -169,11 +169,10 @@ func main() {
 	}
 
 	fmt.Println("==================================================")
-	fmt.Printf("🛡️  Dev Sentinel (Go Ultra-Speed Engine) на порту %d\n", *portFlag)
-	fmt.Printf("    Веб-дашборд: http://localhost:%d\n", *portFlag)
-	fmt.Println("    Терминальный TUI: dev-sentinel tui")
-	fmt.Println("    Память бинарника: ~15 MB | Отклик: < 1 ms")
-	fmt.Println("    Ноутбук: Acer Nitro 5 (AN515-57) • Ubuntu Linux")
+	fmt.Printf("DevAegis Systems Sentinel running on port %d\n", *portFlag)
+	fmt.Printf("Web Dashboard: http://localhost:%d\n", *portFlag)
+	fmt.Println("Emergency TUI: aegis tui")
+	fmt.Println("Process Memory: ~14 MB | Telemetry Latency: < 1 ms")
 	fmt.Println("==================================================")
 
 	// Start background alert watchdog

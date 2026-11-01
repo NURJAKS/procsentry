@@ -1,5 +1,6 @@
-"""Ubuntu Top-Panel Tray Indicator for DevAegis (Dev Sentinel).
+"""Ubuntu Top-Panel Tray Indicator for DevAegis.
 Uses AyatanaAppIndicator3 to display live CPU temperature and RAM in the GNOME panel.
+Strict minimalist systems-level design without emojis.
 """
 
 import os
@@ -52,67 +53,67 @@ class SentinelTray:
             )
             self.indicator.set_status(AyatanaAppIndicator3.IndicatorStatus.ACTIVE)
             self.indicator.set_title("DevAegis Sentinel")
-            self.indicator.set_label(" 55°C | 10G", " 99°C | 99.9G")
+            self.indicator.set_label("55°C | 10.0G", "99°C | 99.9G")
 
             self.menu = Gtk.Menu()
 
             # Status header
-            self.item_status = Gtk.MenuItem(label="🛡️ DevAegis: Все системы в норме")
+            self.item_status = Gtk.MenuItem(label="DevAegis: Все системы в норме")
             self.item_status.set_sensitive(False)
             self.menu.append(self.item_status)
 
             self.menu.append(Gtk.SeparatorMenuItem())
 
             # 1. Quick Launchers
-            item_open = Gtk.MenuItem(label="🌐 Открыть Веб-дашборд (Ctrl+Alt+S)")
+            item_open = Gtk.MenuItem(label="Открыть веб-дашборд (Ctrl+Alt+S)")
             item_open.connect("activate", self.on_open_dashboard)
             self.menu.append(item_open)
 
-            item_tui = Gtk.MenuItem(label="⚡ Экстренный TUI HUD (Ctrl+Alt+E)")
+            item_tui = Gtk.MenuItem(label="Экстренный TUI HUD (Ctrl+Alt+E)")
             item_tui.connect("activate", self.on_open_tui)
             self.menu.append(item_tui)
 
             self.menu.append(Gtk.SeparatorMenuItem())
 
-            # 2. Live Info Items
-            self.item_cpu = Gtk.MenuItem(label="🔥 CPU: --°C")
+            # 2. Live Telemetry
+            self.item_cpu = Gtk.MenuItem(label="CPU: --°C")
             self.item_cpu.set_sensitive(False)
             self.menu.append(self.item_cpu)
 
-            self.item_ram = Gtk.MenuItem(label="💾 RAM: -- GB")
+            self.item_ram = Gtk.MenuItem(label="RAM: -- GB")
             self.item_ram.set_sensitive(False)
             self.menu.append(self.item_ram)
 
-            self.item_bat = Gtk.MenuItem(label="🔋 Батарея: --%")
+            self.item_bat = Gtk.MenuItem(label="Батарея: --%")
             self.item_bat.set_sensitive(False)
             self.menu.append(self.item_bat)
 
-            self.item_docker = Gtk.MenuItem(label="🐳 Docker: --")
+            self.item_docker = Gtk.MenuItem(label="Docker: --")
             self.item_docker.set_sensitive(False)
             self.menu.append(self.item_docker)
 
             self.menu.append(Gtk.SeparatorMenuItem())
 
             # 3. Actions
-            item_ghosts = Gtk.MenuItem(label="🧹 Убить dev-призраков (Ctrl+Alt+G)")
+            item_ghosts = Gtk.MenuItem(label="Очистить dev-призраки (Ctrl+Alt+G)")
             item_ghosts.connect("activate", self.on_kill_ghosts)
             self.menu.append(item_ghosts)
 
-            item_docker_clean = Gtk.MenuItem(label="🐳 Очистить неиспользуемый Docker")
+            item_docker_clean = Gtk.MenuItem(label="Очистить неиспользуемый Docker")
             item_docker_clean.connect("activate", self.on_prune_docker)
             self.menu.append(item_docker_clean)
 
             self.menu.append(Gtk.SeparatorMenuItem())
 
             # 4. Quit
-            item_quit = Gtk.MenuItem(label="❌ Закрыть иконку трея")
+            item_quit = Gtk.MenuItem(label="Закрыть трей")
             item_quit.connect("activate", self.on_quit)
             self.menu.append(item_quit)
 
             self.menu.show_all()
             self.indicator.set_menu(self.menu)
 
-            # Periodic update every 2.5s
+            # Periodic update every 3s
             GLib.timeout_add_seconds(3, self.update_telemetry)
             self.update_telemetry()
 
@@ -144,7 +145,6 @@ class SentinelTray:
         try:
             data = self.fetch_api("/api/telemetry")
             if not data:
-                # Fallback to local python modules if server not reached
                 try:
                     from core.hardware import get_system_telemetry
                     data = get_system_telemetry()
@@ -165,29 +165,30 @@ class SentinelTray:
             bat_w = bat_info.get("watts", 0)
             is_plugged = bat_info.get("is_plugged", False)
 
-            # Update top panel label
-            label_text = f" {cpu_t:.0f}°C | {ram_u:.1f}G"
-            self.indicator.set_label(label_text, " 99°C | 99.9G")
+            # Update top panel label (clean, strict, no emojis)
+            label_text = f"{cpu_t:.0f}°C | {ram_u:.1f}G"
+            self.indicator.set_label(label_text, "99°C | 99.9G")
 
             # Update menu items
             if self.item_status:
-                status_text = data.get("status_text", "Все системы в норме")
                 status = data.get("status", "NOMINAL")
-                icon = "🛡️" if status == "NOMINAL" else ("⚠️" if status == "WARNING" else "🔥")
-                self.item_status.set_label(f"{icon} DevAegis: {status_text}")
+                label = "DevAegis: Все системы в норме" if status == "NOMINAL" else (
+                    "DevAegis: Повышенная нагрузка" if status == "WARNING" else "DevAegis: Критическое состояние"
+                )
+                self.item_status.set_label(label)
 
             if self.item_cpu:
-                self.item_cpu.set_label(f"🔥 CPU: {cpu_t:.1f}°C (Загрузка: {cpu_load:.1f}%)")
+                self.item_cpu.set_label(f"CPU: {cpu_t:.1f}°C (Загрузка: {cpu_load:.1f}%)")
             if self.item_ram:
-                self.item_ram.set_label(f"💾 RAM: {ram_u:.1f} / {ram_t:.1f} GB [{ram_press}]")
+                self.item_ram.set_label(f"RAM: {ram_u:.1f} / {ram_t:.1f} GB [{ram_press}]")
             if self.item_bat:
                 plugged = "Зарядка" if is_plugged else "Батарея"
-                self.item_bat.set_label(f"🔋 Батарея: {bat_p:.0f}% ({bat_w:.1f}W, {plugged})")
+                self.item_bat.set_label(f"Батарея: {bat_p:.0f}% ({bat_w:.1f}W, {plugged})")
 
             if self.item_docker:
                 docker_data = self.fetch_api("/api/docker") or {}
                 r_count = docker_data.get("running_count", 0)
-                self.item_docker.set_label(f"🐳 Docker: {r_count} активных контейнеров")
+                self.item_docker.set_label(f"Docker: {r_count} активных контейнеров")
         except Exception as e:
             logger.warning("Tray update error: %s", e)
         return True
@@ -203,18 +204,18 @@ class SentinelTray:
 
     def on_kill_ghosts(self, _widget):
         res = self.post_api("/api/processes/kill_ghosts")
-        msg = "Все dev-призраки завершены!"
+        msg = "Все dev-призраки завершены."
         if res and "freed_mb" in res:
-            msg = f"Завершено {res.get('killed', 0)} процессов, освобождено {res.get('freed_mb', 0):.1f} MB"
+            msg = f"Завершено {res.get('killed', 0)} процессов, освобождено {res.get('freed_mb', 0):.1f} MB."
         try:
-            subprocess.run(["notify-send", "-a", "DevAegis", "🧹 Очистка призраков", msg])
+            subprocess.run(["notify-send", "-a", "DevAegis", "Очистка процессов", msg])
         except Exception:
             pass
 
     def on_prune_docker(self, _widget):
         self.post_api("/api/docker/prune")
         try:
-            subprocess.run(["notify-send", "-a", "DevAegis", "🐳 Docker Prune", "Остановленные контейнеры удалены"])
+            subprocess.run(["notify-send", "-a", "DevAegis", "Docker Prune", "Остановленные контейнеры удалены."])
         except Exception:
             pass
 

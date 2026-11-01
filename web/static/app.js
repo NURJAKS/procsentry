@@ -212,10 +212,10 @@ function renderTelemetry(data) {
   batStateDesc.textContent = bat.is_plugged ? "Подключен к сети (AC)" : "Работа от аккумулятора";
   
   if (bat.is_plugged) {
-    batteryStatusBadge.textContent = bat.status === "Charging" ? "⚡ Заряжается" : "Сеть (100%)";
+    batteryStatusBadge.textContent = bat.status === "Charging" ? "Зарядка" : "Сеть (100%)";
     batteryStatusBadge.className = "metric-badge badge-blue";
   } else {
-    batteryStatusBadge.textContent = "🔋 Разряд";
+    batteryStatusBadge.textContent = "Разряд";
     batteryStatusBadge.className = "metric-badge badge-amber";
   }
 
@@ -225,7 +225,7 @@ function renderTelemetry(data) {
   batCyclesVal.textContent = `${bat.cycle_count} циклов`;
 
   if (bat.tips && bat.tips.length > 0) {
-    batTipContainer.innerHTML = `💡 <strong>Рекомендация:</strong> ${bat.tips[0]}`;
+    batTipContainer.innerHTML = `<strong>Рекомендация:</strong> ${bat.tips[0]}`;
     batTipContainer.style.display = "block";
   } else {
     batTipContainer.style.display = "none";
@@ -247,13 +247,13 @@ function renderTelemetry(data) {
     const mode = gpu.mode || "unknown";
     if (mode === "on-demand") {
       gpuModeBadge.className = "metric-badge badge-emerald";
-      gpuModeBadge.textContent = "⚡ On-Demand (Гибрид)";
+      gpuModeBadge.textContent = "On-Demand (Гибрид)";
     } else if (mode === "intel") {
       gpuModeBadge.className = "metric-badge badge-amber";
-      gpuModeBadge.textContent = "🟡 Intel Only (CPU)";
+      gpuModeBadge.textContent = "Intel Only (iGPU)";
     } else if (mode === "nvidia") {
       gpuModeBadge.className = "metric-badge badge-violet";
-      gpuModeBadge.textContent = "🟣 NVIDIA Only";
+      gpuModeBadge.textContent = "NVIDIA Only (dGPU)";
     } else {
       gpuModeBadge.textContent = mode;
     }
@@ -328,9 +328,9 @@ function renderProcesses(list) {
   processesTbody.innerHTML = list.map(p => {
     const catClass = `cat-${p.category}`;
     const ghostBadge = p.is_ghost 
-      ? `<span class="metric-badge badge-amber">👻 Призрак</span>` 
+      ? `<span class="metric-badge badge-amber">Призрак</span>` 
       : (p.is_service 
-          ? `<span class="metric-badge badge-blue">⚙️ Сервис</span>` 
+          ? `<span class="metric-badge badge-blue">Сервис</span>` 
           : `<span class="metric-badge badge-emerald">Активен</span>`);
     
     const displayTitle = p.title || p.name;
@@ -347,7 +347,7 @@ function renderProcesses(list) {
           </div>
         </td>
         <td class="cmd-cell" title="${escapeHtml(p.cmdline)}">
-          <div style="color: #38bdf8; font-weight: 600; font-size: 0.82rem; margin-bottom: 2px;">📁 ${escapeHtml(displayProject)}</div>
+          <div style="color: #38bdf8; font-weight: 600; font-size: 0.82rem; margin-bottom: 2px;">${escapeHtml(displayProject)}</div>
           <div style="color: #cbd5e1; font-size: 0.76rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 320px;">
             ${escapeHtml(displaySub)}
           </div>
@@ -460,18 +460,18 @@ function renderDocker(data) {
           <div style="display:flex;gap:6px;">
             ${c.is_running ? `
               <button class="btn btn-warning btn-sm" onclick="requestStopContainer('${c.id}', '${escapeHtml(c.name)}')">
-                ⏹️ Стоп
+                Стоп
               </button>
               <button class="btn btn-secondary btn-sm" title="Перезапустить" onclick="requestRestartContainer('${c.id}', '${escapeHtml(c.name)}')">
-                🔄
+                Перезапуск
               </button>
             ` : `
               <button class="btn btn-secondary btn-sm" onclick="requestStartContainer('${c.id}', '${escapeHtml(c.name)}')">
-                ▶️ Старт
+                Старт
               </button>
             `}
             <button class="btn btn-secondary btn-sm" title="Посмотреть логи" onclick="viewContainerLogs('${c.id}', '${escapeHtml(c.name)}')">
-              📋 Логи
+              Логи
             </button>
           </div>
         </td>
@@ -585,7 +585,10 @@ function showConfirm(title, desc, onConfirm) {
 function showToast(message, type = "success") {
   const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠️'}</span> <div>${escapeHtml(message)}</div>`;
+  const iconSvg = type === 'success'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  toast.innerHTML = `<span class="toast-icon">${iconSvg}</span> <div>${escapeHtml(message)}</div>`;
   toastContainer.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = "0";
@@ -779,7 +782,7 @@ window.viewContainerLogs = async function(id, name) {
   const content = document.getElementById("logs-modal-content");
   if (!modal || !content) return;
 
-  title.textContent = `📋 Логи: ${name} (${id})`;
+  title.textContent = `Логи: ${name} (${id})`;
   content.textContent = "Загрузка логов...";
   modal.classList.add("open");
 
@@ -845,7 +848,7 @@ window.applyGpuSwitch = async function() {
     } else {
       if (cmdBox && data.command) {
         cmdBox.style.display = "block";
-        cmdBox.innerHTML = `<strong>⚠️ Требуются права root:</strong><br>Скопируйте и выполните команду в терминале:<br><code style="color:#00f0ff; user-select: all; display:block; margin-top:5px; padding:6px; background:rgba(0,0,0,0.4); border-radius:4px;">${escapeHtml(data.command)}</code>`;
+        cmdBox.innerHTML = `<strong>Требуются права root:</strong><br>Скопируйте и выполните команду в терминале:<br><code style="color:#00f0ff; user-select: all; display:block; margin-top:5px; padding:6px; background:rgba(0,0,0,0.4); border-radius:4px;">${escapeHtml(data.command)}</code>`;
       }
       showToast(data.message || "Требуется авторизация в терминале", "warning");
     }
