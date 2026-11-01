@@ -3,7 +3,10 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_PATH="$SCRIPT_DIR/app.py"
+APP_PATH="$HOME/.local/bin/dev-sentinel"
+if [ ! -f "$APP_PATH" ]; then
+    APP_PATH="$SCRIPT_DIR/dev-sentinel"
+fi
 AUTOSTART_DIR="$HOME/.config/autostart"
 DESKTOP_FILE="$AUTOSTART_DIR/dev-sentinel.desktop"
 
@@ -14,10 +17,10 @@ cat <<EOF > "$DESKTOP_FILE"
 [Desktop Entry]
 Type=Application
 Version=1.0
-Name=Dev Laptop Sentinel
-GenericName=Laptop Health & Dev Workspace Monitor
-Comment=Monitors hardware temperatures, RAM pressure, ghost servers, and ports
-Exec=/usr/bin/python3 "$APP_PATH"
+Name=Dev Laptop Sentinel (Go Engine)
+GenericName=Laptop Health & Dev Workspace Guardian
+Comment=Ultra-fast Hardware Monitor, OOM Guard, Ghost Killer, and Port Radar
+Exec=$APP_PATH
 Icon=utilities-system-monitor
 Terminal=false
 Categories=System;Monitor;Development;

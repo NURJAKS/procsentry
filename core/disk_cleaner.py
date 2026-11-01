@@ -3,6 +3,7 @@ Inspects developer caches (~/.cache, ~/.npm, ~/.cargo, gradle, etc.).
 """
 
 import os
+import time
 import shutil
 import subprocess
 from typing import Dict, Any, List
@@ -15,6 +16,8 @@ TARGET_CACHES = [
     {"name": "Thumbnail Cache", "path": os.path.expanduser("~/.cache/thumbnails"), "desc": "Миниатюры картинок GNOME"},
     {"name": "Chrome / Browser Cache", "path": os.path.expanduser("~/.cache/google-chrome"), "desc": "Кэш страниц и медиа браузера Chrome"}
 ]
+
+_CACHES_CACHE: Dict[str, Any] = {"results": [], "time": 0.0}
 
 
 def get_dir_size_mb(path: str) -> float:
@@ -42,8 +45,12 @@ def get_dir_size_mb(path: str) -> float:
         return 0.0
 
 
-def scan_caches() -> List[Dict[str, Any]]:
-    """Returns scanned developer caches and their sizes."""
+def scan_caches(force: bool = False) -> List[Dict[str, Any]]:
+    """Returns scanned developer caches and their sizes. Cached for 60s."""
+    now = time.time()
+    if not force and (now - _CACHES_CACHE["time"] < 60.0) and _CACHES_CACHE["results"]:
+        return _CACHES_CACHE["results"]
+
     results = []
     for item in TARGET_CACHES:
         path = item["path"]
@@ -57,11 +64,14 @@ def scan_caches() -> List[Dict[str, Any]]:
                 "size_display": f"{round(size_mb / 1024, 2)} GB" if size_mb >= 1024 else f"{round(size_mb, 1)} MB"
             })
     results.sort(key=lambda x: x["size_mb"], reverse=True)
+    _CACHES_CACHE["results"] = results
+    _CACHES_CACHE["time"] = now
     return results
 
 
 def clean_cache(name: str) -> Dict[str, Any]:
     """Cleans a specific target cache."""
+    _CACHES_CACHE["time"] = 0.0
     target = next((item for item in TARGET_CACHES if item["name"] == name), None)
     if not target:
         return {"success": False, "error": f"Кэш '{name}' не найден"}

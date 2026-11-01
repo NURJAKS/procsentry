@@ -77,15 +77,16 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCanvas();
   setupActionButtons();
 
-  // Initial fetch
+  // Initial fetch: fast HUD data first
   fetchTelemetry();
   fetchProcesses();
   fetchPorts();
-  fetchDocker();
-  fetchCaches();
 
-  // Telemetry loop every 1.5s
-  setInterval(fetchTelemetry, 1500);
+  // Defer background Docker check so initial paint is instant
+  setTimeout(fetchDocker, 1000);
+
+  // Telemetry loop every 2s
+  setInterval(fetchTelemetry, 2000);
   // Dev processes & ports refresh every 4s
   setInterval(() => {
     fetchProcesses();

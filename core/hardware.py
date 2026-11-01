@@ -3,6 +3,7 @@ Reads CPU package, core temps, NVMe SSD temp, RAM, Battery health, watts, and po
 """
 
 import os
+import time
 import glob
 import psutil
 import subprocess
@@ -195,8 +196,16 @@ def get_battery_info() -> Dict[str, Any]:
     }
 
 
-def get_gpu_mode() -> str:
-    """Queries current PRIME GPU mode (intel, on-demand, nvidia)."""
+_GPU_MODE_CACHE: Dict[str, Any] = {"mode": "unknown", "time": 0.0}
+_GPU_INFO_CACHE: Dict[str, Any] = {"info": None, "time": 0.0}
+
+
+def get_gpu_mode(force: bool = False) -> str:
+    """Queries current PRIME GPU mode (intel, on-demand, nvidia). Cached for 30s."""
+    now = time.time()
+    if not force and (now - _GPU_MODE_CACHE["time"] < 30.0) and _GPU_MODE_CACHE["mode"] != "unknown":
+        return _GPU_MODE_CACHE["mode"]
+
     try:
         res = subprocess.run(
             ["prime-select", "query"],
@@ -206,10 +215,13 @@ def get_gpu_mode() -> str:
             timeout=2
         )
         if res.returncode == 0 and res.stdout.strip():
-            return res.stdout.strip().lower()
+            mode = res.stdout.strip().lower()
+            _GPU_MODE_CACHE["mode"] = mode
+            _GPU_MODE_CACHE["time"] = now
+            return mode
     except Exception:
         pass
-    return "unknown"
+    return _GPU_MODE_CACHE.get("mode", "unknown")
 
 
 def switch_gpu_mode(target_mode: str) -> Dict[str, Any]:
@@ -217,9 +229,13 @@ def switch_gpu_mode(target_mode: str) -> Dict[str, Any]:
     if target_mode not in ("intel", "on-demand", "nvidia"):
         return {"success": False, "error": f"Неизвестный режим: {target_mode}. Доступно: intel, on-demand, nvidia"}
     
-    current = get_gpu_mode()
+    current = get_gpu_mode(force=True)
     if current == target_mode:
         return {"success": True, "message": f"Режим {target_mode} уже активен", "mode": current}
+
+    # Invalidate cache
+    _GPU_MODE_CACHE["time"] = 0.0
+    _GPU_INFO_CACHE["time"] = 0.0
 
     # Attempt GUI authorization via pkexec
     try:
@@ -231,6 +247,8 @@ def switch_gpu_mode(target_mode: str) -> Dict[str, Any]:
             timeout=15
         )
         if res.returncode == 0:
+            _GPU_MODE_CACHE["mode"] = target_mode
+            _GPU_MODE_CACHE["time"] = time.time()
             return {
                 "success": True,
                 "message": f"Режим успешно изменен на {target_mode}! Перезагрузите ноутбук для применения драйвера.",
@@ -249,7 +267,11 @@ def switch_gpu_mode(target_mode: str) -> Dict[str, Any]:
 
 
 def get_gpu_info() -> Dict[str, Any]:
-    """Returns GPU model, active PRIME mode, power state, and temperature."""
+    """Returns GPU model, active PRIME mode, power state, and temperature (cached for 5s)."""
+    now = time.time()
+    if (now - _GPU_INFO_CACHE["time"] < 5.0) and _GPU_INFO_CACHE["info"] is not None:
+        return _GPU_INFO_CACHE["info"]
+
     mode = get_gpu_mode()
     
     mode_labels = {
@@ -291,6 +313,8 @@ def get_gpu_info() -> Dict[str, Any]:
     else:
         info["status"] = "NVIDIA обесточена (Только Intel iGPU)"
 
+    _GPU_INFO_CACHE["info"] = info
+    _GPU_INFO_CACHE["time"] = now
     return info
 
 

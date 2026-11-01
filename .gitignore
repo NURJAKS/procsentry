@@ -8,3 +8,6 @@ htmlcov/
 venv/
 .env
 .DS_Store
+dev-sentinel
+bin/
+
