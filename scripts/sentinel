@@ -4,7 +4,12 @@
 # Manage Sentinel service, tray indicator, and web dashboard
 # ========================================================
 
-APP_DIR="/home/nurjaks/Dev/dev-sentinel"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+GO_BIN="$HOME/.local/bin/dev-sentinel"
+if [ ! -f "$GO_BIN" ]; then
+    GO_BIN="$APP_DIR/dev-sentinel"
+fi
 APP_EXEC="$APP_DIR/app.py"
 STATE_DIR="$HOME/.local/state/dev-sentinel"
 PID_FILE="$STATE_DIR/sentinel.pid"
@@ -49,7 +54,11 @@ start_sentinel() {
     export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
     export XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:-GNOME}"
 
-    setsid python3 -u "$APP_EXEC" >> "$LOG_FILE" 2>&1 &
+    if [ -x "$GO_BIN" ]; then
+        setsid "$GO_BIN" >> "$LOG_FILE" 2>&1 &
+    else
+        setsid python3 -u "$APP_EXEC" >> "$LOG_FILE" 2>&1 &
+    fi
     local new_pid=$!
     echo "$new_pid" > "$PID_FILE"
 

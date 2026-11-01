@@ -121,7 +121,7 @@ def parse_friendly_process_info(name: str, cmdline: str) -> Dict[str, str]:
 
 
 def extract_project_name(cmdline: str) -> str:
-    """Extracts project name if running inside /home/nurjaks/Dev/..."""
+    """Extracts project name if running inside ~/Dev/..."""
     match = re.search(r"/Dev/([^/\s]+)", cmdline)
     if match:
         return f"~/Dev/{match.group(1)}"

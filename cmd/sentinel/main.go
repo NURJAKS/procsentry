@@ -105,16 +105,29 @@ func main() {
 	portFlag := flag.Int("port", defaultPort, "Web dashboard port")
 	flag.Parse()
 
-	// Locate static directory
+	// Locate static directory dynamically
 	exePath, err := os.Executable()
 	baseDir := "."
 	if err == nil {
 		baseDir = filepath.Dir(exePath)
 	}
+
+	homeDir, _ := os.UserHomeDir()
+	candidates := []string{
+		filepath.Join(baseDir, "web", "static"),
+		filepath.Join(baseDir, "..", "web", "static"),
+		filepath.Join(".", "web", "static"),
+		filepath.Join(homeDir, "Dev", "dev-sentinel", "web", "static"),
+		filepath.Join(homeDir, "dev-sentinel", "web", "static"),
+		filepath.Join(homeDir, ".local", "share", "dev-sentinel", "web", "static"),
+	}
+
 	staticDir := filepath.Join(baseDir, "web", "static")
-	if _, err := os.Stat(staticDir); os.IsNotExist(err) {
-		// Try from Dev directory
-		staticDir = "/home/nurjaks/Dev/dev-sentinel/web/static"
+	for _, cand := range candidates {
+		if fi, err := os.Stat(cand); err == nil && fi.IsDir() {
+			staticDir = cand
+			break
+		}
 	}
 
 	fmt.Println("==================================================")
