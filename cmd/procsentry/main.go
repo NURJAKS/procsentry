@@ -9,24 +9,24 @@ import (
 	"strconv"
 	"time"
 
-	"dev-sentinel/pkg/docker"
-	"dev-sentinel/pkg/hardware"
-	"dev-sentinel/pkg/ports"
-	"dev-sentinel/pkg/processes"
-	"dev-sentinel/pkg/tui"
-	"dev-sentinel/pkg/webserver"
+	"github.com/NURJAKS/procsentry/pkg/docker"
+	"github.com/NURJAKS/procsentry/pkg/hardware"
+	"github.com/NURJAKS/procsentry/pkg/ports"
+	"github.com/NURJAKS/procsentry/pkg/processes"
+	"github.com/NURJAKS/procsentry/pkg/tui"
+	"github.com/NURJAKS/procsentry/pkg/webserver"
 )
 
 const defaultPort = 48888
 
 func sendNotification(title, msg string) {
-	_ = exec.Command("notify-send", "-a", "Dev Sentinel", title, msg).Run()
+	_ = exec.Command("notify-send", "-a", "ProcSentry", title, msg).Run()
 }
 
 func runWatchdog() {
 	time.Sleep(2 * time.Second)
 	initial := hardware.GetSystemTelemetry()
-	sendNotification("DevAegis Sentinel",
+	sendNotification("ProcSentry Watchdog",
 		fmt.Sprintf("Started: CPU %.1f°C | Free RAM %.1f GB", initial.CPU.PackageTemp, initial.RAM.AvailableGB))
 
 	var lastAlertTime time.Time
@@ -128,14 +128,14 @@ func main() {
 				telem.Battery.Percent, telem.Battery.Watts, telem.NVMeTemp)
 			return
 		case "--help", "-h", "help":
-			fmt.Println("DevAegis — Linux Systems Guardian & Dev Workspace HUD")
+			fmt.Println("ProcSentry — Zero-Overhead Linux Systems Guardian & Dev Workspace HUD")
 			fmt.Println("\nUsage:")
-			fmt.Println("  aegis              Start daemon (telemetry service & web server)")
-			fmt.Println("  aegis tui          Launch emergency terminal HUD")
-			fmt.Println("  aegis ghosts       Terminate orphaned background dev processes")
-			fmt.Println("  aegis free <port>  Release listening TCP port")
-			fmt.Println("  aegis prune        Prune stopped Docker containers")
-			fmt.Println("  aegis status       Show single-line hardware summary")
+			fmt.Println("  procsentry              Start daemon (telemetry service & web server)")
+			fmt.Println("  procsentry tui          Launch emergency terminal HUD")
+			fmt.Println("  procsentry ghosts       Terminate orphaned background dev processes")
+			fmt.Println("  procsentry free <port>  Release listening TCP port")
+			fmt.Println("  procsentry prune        Prune stopped Docker containers")
+			fmt.Println("  procsentry status       Show single-line hardware summary")
 			return
 		}
 	}
@@ -155,8 +155,10 @@ func main() {
 		filepath.Join(baseDir, "web", "static"),
 		filepath.Join(baseDir, "..", "web", "static"),
 		filepath.Join(".", "web", "static"),
+		filepath.Join(homeDir, "Dev", "procsentry", "web", "static"),
 		filepath.Join(homeDir, "Dev", "dev-sentinel", "web", "static"),
-		filepath.Join(homeDir, "dev-sentinel", "web", "static"),
+		filepath.Join(homeDir, "procsentry", "web", "static"),
+		filepath.Join(homeDir, ".local", "share", "procsentry", "web", "static"),
 		filepath.Join(homeDir, ".local", "share", "dev-sentinel", "web", "static"),
 	}
 
@@ -169,9 +171,9 @@ func main() {
 	}
 
 	fmt.Println("==================================================")
-	fmt.Printf("DevAegis Systems Sentinel running on port %d\n", *portFlag)
+	fmt.Printf("ProcSentry Systems Watchdog running on port %d\n", *portFlag)
 	fmt.Printf("Web Dashboard: http://localhost:%d\n", *portFlag)
-	fmt.Println("Emergency TUI: aegis tui")
+	fmt.Println("Emergency TUI: procsentry tui")
 	fmt.Println("Process Memory: ~14 MB | Telemetry Latency: < 1 ms")
 	fmt.Println("==================================================")
 

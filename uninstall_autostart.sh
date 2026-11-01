@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Autostart remover for Dev Laptop Sentinel
+# Autostart remover for ProcSentry
 set -e
 
-DESKTOP_FILE="$HOME/.config/autostart/dev-sentinel.desktop"
+AUTOSTART_DIR="$HOME/.config/autostart"
 
-if [ -f "$DESKTOP_FILE" ]; then
-    rm -f "$DESKTOP_FILE"
-    echo "[OK] DevAegis удален из автозагрузки ($DESKTOP_FILE)"
-else
-    echo "[INFO] Файл автозагрузки не найден."
-fi
+for FILE in "$AUTOSTART_DIR/procsentry.desktop" "$AUTOSTART_DIR/dev-sentinel.desktop"; do
+    if [ -f "$FILE" ]; then
+        rm -f "$FILE"
+        echo "[OK] Удален из автозагрузки: $FILE"
+    fi
+done
+echo "[OK] ProcSentry автозагрузка очищена."

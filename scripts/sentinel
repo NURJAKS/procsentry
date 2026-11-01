@@ -6,14 +6,18 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-GO_BIN="$HOME/.local/bin/dev-sentinel"
+GO_BIN="$HOME/.local/bin/procsentry"
 if [ ! -f "$GO_BIN" ]; then
-    GO_BIN="$APP_DIR/dev-sentinel"
+    if [ -f "$APP_DIR/procsentry" ]; then
+        GO_BIN="$APP_DIR/procsentry"
+    else
+        GO_BIN="$HOME/.local/bin/dev-sentinel"
+    fi
 fi
 APP_EXEC="$APP_DIR/app.py"
-STATE_DIR="$HOME/.local/state/dev-sentinel"
-PID_FILE="$STATE_DIR/sentinel.pid"
-LOG_FILE="$STATE_DIR/sentinel.log"
+STATE_DIR="$HOME/.local/state/procsentry"
+PID_FILE="$STATE_DIR/procsentry.pid"
+LOG_FILE="$STATE_DIR/procsentry.log"
 PORT=48888
 
 mkdir -p "$STATE_DIR"

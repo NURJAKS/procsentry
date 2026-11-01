@@ -32,7 +32,7 @@ jobs:
         run: |
           go test -v -race ./...
 
-      - name: Compile Static Sentinel Binary
+      - name: Compile Static ProcSentry Binary
         run: |
-          CGO_ENABLED=0 go build -ldflags="-s -w" -v -o bin/sentinel ./cmd/sentinel
-          ls -lh bin/sentinel
+          CGO_ENABLED=0 go build -ldflags="-s -w" -v -o bin/procsentry ./cmd/procsentry
+          ls -lh bin/procsentry

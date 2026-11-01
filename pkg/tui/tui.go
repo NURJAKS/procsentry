@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"dev-sentinel/pkg/docker"
-	"dev-sentinel/pkg/hardware"
-	"dev-sentinel/pkg/ports"
-	"dev-sentinel/pkg/processes"
+	"github.com/NURJAKS/procsentry/pkg/docker"
+	"github.com/NURJAKS/procsentry/pkg/hardware"
+	"github.com/NURJAKS/procsentry/pkg/ports"
+	"github.com/NURJAKS/procsentry/pkg/processes"
 )
 
 // ANSI Color codes
@@ -61,7 +61,7 @@ func RunTUI() {
 
 		fmt.Print(clearHome)
 		fmt.Printf("%s%s╔═══════════════════════════════════════════════════════════════════════════════╗%s\n", bold, cyan, reset)
-		fmt.Printf("%s%s║   DEVAEGIS — SYSTEM RESCUE HUD (Linux x86_64)                                 ║%s\n", bold, cyan, reset)
+		fmt.Printf("%s%s║   PROCSENTRY — SYSTEM RESCUE HUD (Linux x86_64)                               ║%s\n", bold, cyan, reset)
 		fmt.Printf("%s%s╚═══════════════════════════════════════════════════════════════════════════════╝%s\n", bold, cyan, reset)
 
 		// 1. Hardware Status Row
@@ -175,7 +175,7 @@ func RunTUI() {
 			switch strings.ToLower(parts[0]) {
 			case "q", "exit", "quit":
 				fmt.Print(clearHome)
-				fmt.Println("DevAegis TUI terminated.")
+				fmt.Println("ProcSentry TUI terminated.")
 				return
 			case "g", "ghosts", "kill-ghosts":
 				count, freed, _ := processes.KillAllGhosts()

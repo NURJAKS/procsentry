@@ -1,4 +1,4 @@
-"""Ubuntu Top-Panel Tray Indicator for DevAegis.
+"""Ubuntu Top-Panel Tray Indicator for ProcSentry.
 Uses AyatanaAppIndicator3 to display live CPU temperature and RAM in the GNOME panel.
 Strict minimalist systems-level design without emojis.
 """
@@ -7,6 +7,7 @@ import os
 import sys
 import json
 import logging
+import shutil
 import subprocess
 import urllib.request
 import webbrowser
@@ -52,13 +53,13 @@ class SentinelTray:
                 AyatanaAppIndicator3.IndicatorCategory.APPLICATION_STATUS
             )
             self.indicator.set_status(AyatanaAppIndicator3.IndicatorStatus.ACTIVE)
-            self.indicator.set_title("DevAegis Sentinel")
+            self.indicator.set_title("ProcSentry")
             self.indicator.set_label("55°C | 10.0G", "99°C | 99.9G")
 
             self.menu = Gtk.Menu()
 
             # Status header
-            self.item_status = Gtk.MenuItem(label="DevAegis: Все системы в норме")
+            self.item_status = Gtk.MenuItem(label="ProcSentry: Все системы в норме")
             self.item_status.set_sensitive(False)
             self.menu.append(self.item_status)
 
@@ -126,7 +127,7 @@ class SentinelTray:
     def fetch_api(self, endpoint: str):
         try:
             url = f"http://127.0.0.1:{self.port}{endpoint}"
-            req = urllib.request.Request(url, headers={"User-Agent": "DevAegis-Tray"})
+            req = urllib.request.Request(url, headers={"User-Agent": "ProcSentry-Tray"})
             with urllib.request.urlopen(req, timeout=1.5) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except Exception:
@@ -135,7 +136,7 @@ class SentinelTray:
     def post_api(self, endpoint: str):
         try:
             url = f"http://127.0.0.1:{self.port}{endpoint}"
-            req = urllib.request.Request(url, data=b"{}", headers={"Content-Type": "application/json", "User-Agent": "DevAegis-Tray"})
+            req = urllib.request.Request(url, data=b"{}", headers={"Content-Type": "application/json", "User-Agent": "ProcSentry-Tray"})
             with urllib.request.urlopen(req, timeout=3.0) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except Exception:
@@ -172,8 +173,8 @@ class SentinelTray:
             # Update menu items
             if self.item_status:
                 status = data.get("status", "NOMINAL")
-                label = "DevAegis: Все системы в норме" if status == "NOMINAL" else (
-                    "DevAegis: Повышенная нагрузка" if status == "WARNING" else "DevAegis: Критическое состояние"
+                label = "ProcSentry: Все системы в норме" if status == "NOMINAL" else (
+                    "ProcSentry: Повышенная нагрузка" if status == "WARNING" else "ProcSentry: Критическое состояние"
                 )
                 self.item_status.set_label(label)
 
@@ -198,7 +199,10 @@ class SentinelTray:
 
     def on_open_tui(self, _widget):
         try:
-            subprocess.Popen(["gnome-terminal", "--title=DevAegis Emergency HUD", "--", "aegis", "tui"])
+            cmd = "procsentry"
+            if shutil.which("procsentry") is None and shutil.which("aegis"):
+                cmd = "aegis"
+            subprocess.Popen(["gnome-terminal", "--title=ProcSentry Emergency HUD", "--", cmd, "tui"])
         except Exception as e:
             logger.error("Failed to open TUI: %s", e)
 
@@ -208,14 +212,14 @@ class SentinelTray:
         if res and "freed_mb" in res:
             msg = f"Завершено {res.get('killed', 0)} процессов, освобождено {res.get('freed_mb', 0):.1f} MB."
         try:
-            subprocess.run(["notify-send", "-a", "DevAegis", "Очистка процессов", msg])
+            subprocess.run(["notify-send", "-a", "ProcSentry", "Очистка процессов", msg])
         except Exception:
             pass
 
     def on_prune_docker(self, _widget):
         self.post_api("/api/docker/prune")
         try:
-            subprocess.run(["notify-send", "-a", "DevAegis", "Docker Prune", "Остановленные контейнеры удалены."])
+            subprocess.run(["notify-send", "-a", "ProcSentry", "Docker Prune", "Остановленные контейнеры удалены."])
         except Exception:
             pass
 

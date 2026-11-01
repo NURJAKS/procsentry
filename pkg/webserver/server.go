@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"dev-sentinel/pkg/cleaner"
-	"dev-sentinel/pkg/docker"
-	"dev-sentinel/pkg/hardware"
-	"dev-sentinel/pkg/ports"
-	"dev-sentinel/pkg/processes"
+	"github.com/NURJAKS/procsentry/pkg/cleaner"
+	"github.com/NURJAKS/procsentry/pkg/docker"
+	"github.com/NURJAKS/procsentry/pkg/hardware"
+	"github.com/NURJAKS/procsentry/pkg/ports"
+	"github.com/NURJAKS/procsentry/pkg/processes"
 )
 
 type KillReq struct {

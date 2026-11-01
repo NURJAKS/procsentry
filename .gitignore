@@ -12,3 +12,5 @@ dev-sentinel
 bin/
 
 sentinel
+procsentry
+aegis
