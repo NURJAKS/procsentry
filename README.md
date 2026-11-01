@@ -1,13 +1,14 @@
 # DevAegis (formerly Dev Sentinel)
 
+[![CI](https://github.com/NURJAKS/dev-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/NURJAKS/dev-sentinel/actions/workflows/ci.yml)
 [![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go)](https://go.dev/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20(x86__64)-FCC624?style=flat-square&logo=linux)](https://kernel.org/)
-[![Dependencies](https://img.shields.io/badge/Dependencies-0%20(Pure%20Go)-brightgreen?style=flat-square)](#architecture)
-[![Binary Size](https://img.shields.io/badge/Binary%20Size-8.6%20MB-blue?style=flat-square)](#performance)
+[![Dependencies](https://img.shields.io/badge/Dependencies-0%20(Pure%20Go)-brightgreen?style=flat-square)](#architecture--kernel-interfaces)
+[![Binary Size](https://img.shields.io/badge/Binary%20Size-8.6%20MB-blue?style=flat-square)](#benchmark-go-engine-vs-python-legacy)
 [![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)](LICENSE)
 
 > **High-Performance Linux Hardware Sentinel & Developer Workspace Guardian.**  
-> Zero-dependency Go daemon designed for developer laptops (calibrated for **Acer Nitro 5 AN515-57 / Ubuntu 24.04 LTS**). Built to prevent thermal throttling, out-of-memory (OOM) lockups, rogue port collisions, and ghost dev-process leaks with sub-millisecond kernel telemetry.
+> Zero-dependency Go daemon engineered for high-concurrency Linux developer workstations and laptops (Ubuntu / Debian / Arch / Fedora). Built to prevent thermal throttling, out-of-memory (OOM) lockups, rogue port collisions, and ghost dev-process leaks with sub-millisecond kernel telemetry.
 
 ---
 
@@ -74,7 +75,7 @@ flowchart TD
 ```
 
 ### Direct Linux Kernel Integration:
-* **Per-Core CPU Thermals**: Scans `coretemp` sysfs attributes for Package Temp and Core 0-5 individual thermals without executing `sensors` subprocesses.
+* **Per-Core CPU Thermals**: Scans `coretemp` sysfs attributes for Package Temp and individual core thermals without executing `sensors` subprocesses.
 * **NVMe Health**: Direct composite temperature tracking from NVMe controller sysfs nodes.
 * **Battery Discharge Wattmeter**: Reads continuous micro-watt rates, calculated degradation cycles, and wear level percentages.
 * **Docker Client**: Pure Go HTTP client directly communicating over `/var/run/docker.sock` without shell invokes or `docker stats` latency.
@@ -104,7 +105,7 @@ ln -sf ~/.local/bin/aegis ~/.local/bin/dev-sentinel
 # Launch the interactive Emergency TUI HUD
 aegis tui
 
-# Kill all orphaned / zombie dev processes in one shot (20ms)
+# Kill all orphaned / zombie dev processes in one shot (< 20ms)
 aegis ghosts
 
 # Instantly free up a bound port (e.g. 3000, 8000, 5173)
@@ -144,8 +145,8 @@ The TUI provides a complete control plane optimized for emergency triage:
 
 --- [ACTIVE DEV PROCESSES] ---
  PID    CATEGORY     NAME / PROJECT           RAM        UPTIME   STATUS
- 12768  backend      ~/Dev/spendwise/backend  65.6 MB    0.8h     [ACTIVE]
- 7960   ai           MCP: Web Fetcher (AI)    85.4 MB    0.3h     [SERVICE]
+ 12768  backend      ~/Dev/backend-api        65.6 MB    0.8h     [ACTIVE]
+ 7960   ai           Local LLM Inference      85.4 MB    0.3h     [SERVICE]
 
 --- [LISTENING PORTS] ---
  PORT    SERVICE                      PID      PROCESS        RELEASABLE
@@ -163,7 +164,16 @@ The TUI provides a complete control plane optimized for emergency triage:
 
 * **Zero Cloud Telemetry**: DevAegis performs 0 outbound network requests. All monitoring logic is strictly local.
 * **No Elevated Privileges for Reading**: Reads standard Linux `/proc` and `/sys` interfaces accessible to normal non-root user sessions.
-* **Whitelisted Process Safeguards**: Built-in regex guards prevent accidental termination of critical development services, Telegram bots, IDE sidecars, or system daemons.
+* **Whitelisted Process Safeguards**: Built-in regex guards prevent accidental termination of critical development services, databases, IDE sidecars, or system daemons.
+
+---
+
+## Testing
+
+```bash
+# Run unit tests across all Go packages
+go test -v -race ./...
+```
 
 ---
 
