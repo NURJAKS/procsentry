@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/NURJAKS/procsentry/pkg/cleaner"
 	"github.com/NURJAKS/procsentry/pkg/docker"
@@ -26,6 +27,14 @@ type FreePortReq struct {
 
 type CleanCacheReq struct {
 	Name string `json:"name"`
+}
+
+type ContainerActionReq struct {
+	ID string `json:"id"`
+}
+
+type DockerPruneReq struct {
+	Mode string `json:"mode"`
 }
 
 // StartServer starts the high-speed Go web server on the specified port
@@ -99,13 +108,109 @@ func StartServer(port int, staticDir string) error {
 		_ = json.NewEncoder(w).Encode(data)
 	})
 
-	mux.HandleFunc("/api/docker/prune", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/docker/logs/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		if err := docker.PruneContainers(); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		id := strings.TrimPrefix(r.URL.Path, "/api/docker/logs/")
+		id = strings.TrimSpace(id)
+		if id == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"detail": "ID контейнера обязателен"})
 			return
 		}
-		_ = json.NewEncoder(w).Encode(map[string]any{"success": true, "message": "Остановленные контейнеры удалены"})
+
+		tail := 100
+		if tailStr := r.URL.Query().Get("tail"); tailStr != "" {
+			if t, err := strconv.Atoi(tailStr); err == nil && t > 0 {
+				tail = t
+			}
+		}
+
+		logs, err := docker.GetContainerLogs(id, tail)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"detail": err.Error()})
+			return
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"success": true,
+			"logs":    logs,
+		})
+	})
+
+	mux.HandleFunc("/api/docker/start", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method != http.MethodPost {
+			http.Error(w, `{"detail":"Method not allowed"}`, http.StatusMethodNotAllowed)
+			return
+		}
+		var req ContainerActionReq
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.ID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"detail": "Некорректный запрос или ID контейнера"})
+			return
+		}
+		if err := docker.StartContainer(req.ID); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"detail": err.Error()})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"success": true, "message": fmt.Sprintf("Контейнер %s запущен", req.ID)})
+	})
+
+	mux.HandleFunc("/api/docker/stop", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method != http.MethodPost {
+			http.Error(w, `{"detail":"Method not allowed"}`, http.StatusMethodNotAllowed)
+			return
+		}
+		var req ContainerActionReq
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.ID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"detail": "Некорректный запрос или ID контейнера"})
+			return
+		}
+		if err := docker.StopContainer(req.ID); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"detail": err.Error()})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"success": true, "message": fmt.Sprintf("Контейнер %s остановлен", req.ID)})
+	})
+
+	mux.HandleFunc("/api/docker/restart", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method != http.MethodPost {
+			http.Error(w, `{"detail":"Method not allowed"}`, http.StatusMethodNotAllowed)
+			return
+		}
+		var req ContainerActionReq
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.ID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"detail": "Некорректный запрос или ID контейнера"})
+			return
+		}
+		if err := docker.RestartContainer(req.ID); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"detail": err.Error()})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"success": true, "message": fmt.Sprintf("Контейнер %s перезапущен", req.ID)})
+	})
+
+	mux.HandleFunc("/api/docker/prune", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		var req DockerPruneReq
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		if req.Mode == "" {
+			req.Mode = "stopped"
+		}
+		if err := docker.Prune(req.Mode); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"detail": err.Error()})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"success": true, "message": fmt.Sprintf("Docker %s prune выполнен", req.Mode)})
 	})
 
 	// API Caches
