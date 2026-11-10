@@ -69,6 +69,7 @@ func runTrayIndicator() {
 	candidates := []string{
 		filepath.Join(baseDir, "tray", "tray_indicator.py"),
 		filepath.Join(baseDir, "..", "tray", "tray_indicator.py"),
+		filepath.Join(homeDir, "Dev", "procsentry", "tray", "tray_indicator.py"),
 		filepath.Join(homeDir, "Dev", "dev-sentinel", "tray", "tray_indicator.py"),
 	}
 
